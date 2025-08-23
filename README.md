@@ -4,11 +4,11 @@ This is a project made as a part of [Hermes]() by [Hack Club](). This is a custo
 This pcb uses an ICM-42688-P accelerometer/gyroscope and a Seeed Studios Xiao RP2040 microprocessor. This sends a rendering over I2C of a box with the pcb's orientation.
 
 
-<img src="https://github.com/destroyer796/Cube-Tracker/blob/main/Images/CSLPadSchematic.PNG">
+<img src="https://github.com/destroyer796/Cube-Tracker/blob/main/Images/CubeTrackerSchematicPic.PNG">
 
 Schematic
 
-<img src="https://github.com/destroyer796/Cube-Tracker/blob/main/Images/CubeTrackerPCB.PNG">
+<img src="https://github.com/destroyer796/Cube-Tracker/blob/main/Images/CubeTrackerPCBPic.PNG">
 
 PCB Design
 
