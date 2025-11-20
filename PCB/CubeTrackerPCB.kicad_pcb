@@ -74,7 +74,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "C:/Users/Liamn/OneDrive/Desktop/GithubFiles/Cube-Tracker/Production/")
+			(outputdirectory "C:/Users/Liamn/Documents/GitHub/Cube-Tracker/Production/")
 		)
 	)
 	(net 0 "")
@@ -3084,7 +3084,7 @@
 			(net 8 "unconnected-(U1-GPIO26{slash}ADC0{slash}A0-Pad1)")
 			(pinfunction "GPIO26/ADC0/A0")
 			(pintype "passive")
-			(uuid "6e92f4c2-d1b0-4644-9b5e-dd1eff84b428")
+			(uuid "b780e469-5e51-44f0-a1dc-70845e00a05d")
 		)
 		(pad "2" smd roundrect
 			(at -8.455 5.08 180)
@@ -3106,7 +3106,7 @@
 			(net 12 "unconnected-(U1-GPIO27{slash}ADC1{slash}A1-Pad2)")
 			(pinfunction "GPIO27/ADC1/A1")
 			(pintype "passive")
-			(uuid "8214cb3c-c3d4-48b4-8ee7-b99776e7b6a2")
+			(uuid "60e23a61-df6e-435f-bed6-b80507ae7640")
 		)
 		(pad "3" smd roundrect
 			(at -8.455 2.54 180)
@@ -3128,7 +3128,7 @@
 			(net 11 "unconnected-(U1-GPIO28{slash}ADC2{slash}A2-Pad3)")
 			(pinfunction "GPIO28/ADC2/A2")
 			(pintype "passive")
-			(uuid "a525fe5e-4fcc-4437-b193-0822fd90c778")
+			(uuid "58d93600-e254-4fe0-b136-5fb3a1e9f0e8")
 		)
 		(pad "4" smd roundrect
 			(at -8.455 0 180)
@@ -3150,7 +3150,7 @@
 			(net 7 "unconnected-(U1-GPIO29{slash}ADC3{slash}A3-Pad4)")
 			(pinfunction "GPIO29/ADC3/A3")
 			(pintype "passive")
-			(uuid "8d7d2a2a-64d3-4582-87f3-c0d8c637b0c9")
+			(uuid "40329ad9-f81d-4ae0-8433-be63e20313aa")
 		)
 		(pad "5" smd roundrect
 			(at -8.455 -2.54 180)
@@ -3172,7 +3172,7 @@
 			(net 3 "SDA")
 			(pinfunction "GPIO6/SDA")
 			(pintype "passive")
-			(uuid "522228ad-4c64-4a2d-a2f0-eb3ddf9ad677")
+			(uuid "a6db6d76-2863-4f11-a62e-bddcdd4aff01")
 		)
 		(pad "6" smd roundrect
 			(at -8.455 -5.08 180)
@@ -3194,7 +3194,7 @@
 			(net 4 "SCL")
 			(pinfunction "GPIO7/SCL")
 			(pintype "passive")
-			(uuid "b0edf469-c3ee-4dbb-9bd6-6c80404641e9")
+			(uuid "2d2a9c60-7e5f-4e55-9f4c-1cf790b19383")
 		)
 		(pad "7" smd roundrect
 			(at -8.455 -7.62 180)
@@ -3216,7 +3216,7 @@
 			(net 6 "ICMINT")
 			(pinfunction "GPIO0/TX")
 			(pintype "passive")
-			(uuid "8a3bcc81-6483-41d7-aa42-434d4ba659f1")
+			(uuid "eeefd8dd-6f64-47e1-9e41-5d26add475a6")
 		)
 		(pad "8" thru_hole circle
 			(at 7.62 -7.62)
@@ -3238,7 +3238,7 @@
 			(pinfunction "GPIO1/RX")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "e9cb966e-5f04-4a82-bcef-40b4d93c9d26")
+			(uuid "4bab4b23-3d94-4f8b-9e46-e67b2036bd0d")
 		)
 		(pad "9" thru_hole circle
 			(at 7.62 -5.08)
@@ -3260,7 +3260,7 @@
 			(pinfunction "GPIO2/SCK")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "3c28b24f-022e-40fb-9f69-77ded0d5ba2e")
+			(uuid "4a5abda3-80b0-4741-84db-778efac66fd1")
 		)
 		(pad "10" thru_hole circle
 			(at 7.62 -2.54)
@@ -3282,7 +3282,7 @@
 			(pinfunction "GPIO4/MISO")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "bce9b028-a325-4592-8e2d-d5a46112bd53")
+			(uuid "450b2594-9354-4b8d-a1cb-b4a080101a28")
 		)
 		(pad "11" thru_hole circle
 			(at 7.62 0)
@@ -3304,7 +3304,7 @@
 			(pinfunction "GPIO3/MOSI")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "b5b44099-c338-4c76-9a51-ca20e7ca5f3b")
+			(uuid "da3c9ce3-b547-4bce-be7b-98a1a7653931")
 		)
 		(pad "12" thru_hole circle
 			(at 7.62 2.54)
@@ -3326,7 +3326,7 @@
 			(pinfunction "3V3")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "8ec0e702-f95f-42b9-b3ab-de57212fd581")
+			(uuid "313272de-27c7-4548-96e8-5f7a6ab54749")
 		)
 		(pad "13" thru_hole circle
 			(at 7.62 5.08)
@@ -3348,7 +3348,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "1ef4fdf6-7813-46ec-9592-49b6c815fce5")
+			(uuid "f5dce0d7-f4d7-4db3-b76c-3bcc20031aba")
 		)
 		(pad "14" thru_hole circle
 			(at 7.62 7.62)
@@ -3370,7 +3370,7 @@
 			(pinfunction "VBUS")
 			(pintype "passive")
 			(thermal_bridge_angle 45)
-			(uuid "4b61566e-9179-40ad-bd49-089c1f4bd45f")
+			(uuid "86f1a856-febd-46b1-8f7d-560250051047")
 		)
 		(embedded_fonts no)
 		(model "C:/Users/Liamn/Documents/KiCad/9.0/3dmodels/Seeed Studio XIAO RP2040 v26.step"

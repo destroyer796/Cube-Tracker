@@ -1,0 +1,23 @@
+%TF.GenerationSoftware,KiCad,Pcbnew,9.0.6*%
+%TF.CreationDate,2025-11-19T22:56:00-05:00*%
+%TF.ProjectId,CubeTrackerPCB,43756265-5472-4616-936b-65725043422e,rev?*%
+%TF.SameCoordinates,Original*%
+%TF.FileFunction,Profile,NP*%
+%FSLAX46Y46*%
+G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+G04 Created by KiCad (PCBNEW 9.0.6) date 2025-11-19 22:56:00*
+%MOMM*%
+%LPD*%
+G01*
+G04 APERTURE LIST*
+%TA.AperFunction,Profile*%
+%ADD10C,0.050000*%
+%TD*%
+G04 APERTURE END LIST*
+D10*
+X148700000Y-49700000D02*
+X175300000Y-49700000D01*
+X175300000Y-76300000D01*
+X148700000Y-76300000D01*
+X148700000Y-49700000D01*
+M02*
