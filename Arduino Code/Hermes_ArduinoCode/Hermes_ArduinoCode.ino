@@ -1,14 +1,16 @@
+#include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <MadgwickAHRS.h>
 
 #define ICM_ADDR 0x69
-#define OLED_ADDR 0x79
+//#define OLED_ADDR 0x79
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Madgwick filter;
@@ -69,17 +71,32 @@ Quaternion eulerDegToQuat(float rollDeg, float pitchDeg, float yawDeg) {
 void setup() {
   Serial.begin(9600);
   Wire.begin();
+  delay(500);
 
-  display.begin();
+// SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
   display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  delay(100);
+  display.drawPixel(10, 10, SSD1306_WHITE);
+  display.display();
+  delay(1000); // Pause for 2 seconds
+
+  //display.begin();
+  //display.clearDisplay();
+  //display.setTextColor(SSD1306_WHITE);
+  //display.setTextSize(1);
+  //display.setCursor(0, 0);
+  // delay(100);
+  // display.drawLine(0, 0, 20, 20, SSD1306_WHITE);
+  //delay(100000);
 
   initICM();
 
   filter.begin(100); //100Hz
+  Serial.print("Setup complete");
 }
 
 void loop() {
@@ -229,11 +246,3 @@ void quaternionToEuler(const Quaternion& q, float& roll, float& pitch, float& ya
   yaw = atan2(2.0 * (q.w*q.z + q.x*q.y),
               1.0 - 2.0 * (q.y*q.y + q.z*q.z));
 }
-
-
-
-
-
-
-
-
