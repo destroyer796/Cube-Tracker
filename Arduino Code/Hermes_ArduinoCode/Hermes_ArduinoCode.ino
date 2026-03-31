@@ -4,7 +4,7 @@
 #include <Adafruit_SSD1306.h>
 #include <MadgwickAHRS.h>
 
-#define ICM_ADDR 0x69
+#define ICM_ADDR 0x6A
 //#define OLED_ADDR 0x79
 
 #define SCREEN_WIDTH 128
@@ -16,7 +16,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Madgwick filter;
 
 unsigned long lastMicros = 0; //used for making sure loop runs at constant time
-const unsigned long intervalMicros = 10000; //100Hz
+const unsigned long intervalMicros = 8921; //112.1Hz
 
 //structure for Quaternion
 //struct Quaternion {
@@ -27,6 +27,8 @@ const unsigned long intervalMicros = 10000; //100Hz
 struct Vector3 {
   float x, y, z;
 };
+
+Vector3 gyroBias = {0, 0, 0};
 
 //structure for screen projection
 struct Vector2 {
@@ -42,7 +44,7 @@ Vector3 cubeVertices[8] = {
 //define edges as pairs of vertex indices
 const uint8_t edges[12][2] = {
   {0,1}, {1,2}, {2,3}, {3,0}, //draws back face
-  {4,5}, {5,6}, {6,7}, {7,0}, //draws front face
+  {4,5}, {5,6}, {6,7}, {7,4}, //draws front face
   {0,4}, {1,5}, {2,6}, {3,7} //draws connecting lines back to front
 };
 
@@ -68,9 +70,88 @@ Quaternion eulerDegToQuat(float rollDeg, float pitchDeg, float yawDeg) {
   return q;
 }
 
+void initICM() {
+  Wire.beginTransmission(ICM_ADDR);
+  Wire.write(0x02); // CTRL1 Serial Interface and Sensor Enable
+  Wire.write(0b01100000); // Enables auto-increment and Big-Endian
+  Wire.endTransmission();
+
+  Wire.beginTransmission(ICM_ADDR);
+  Wire.write(0x03); // CTRL2 Accelerometer Settings
+  Wire.write(0b00010110); // +-4g, 112.1Hz
+  Wire.endTransmission();
+
+  Wire.beginTransmission(ICM_ADDR);
+  Wire.write(0x04); // CTRL3 Gyroscope Settings
+  Wire.write(0b01010110); // +=512dps, 112.1Hz
+  Wire.endTransmission();
+
+  Wire.beginTransmission(ICM_ADDR);
+  Wire.write(0x08); // CTRL7 Enable Sensors and Configure Data Reads
+  Wire.write(0b00000011); // aEN=1, gEN=1, enables accel/gyro
+  Wire.endTransmission();
+
+  delay(200); // Wait for gyro to stabilize
+}
+
+void calibrateGyro(int samples = 500) {
+  float sumX = 0, sumY = 0, sumZ = 0;
+  for (int i = 0; i < samples; i++) {
+    float gx, gy, gz;
+    readGyro(gx, gy, gz);
+    sumX += gx; sumY += gy; sumZ += gz;
+    delayMicroseconds(intervalMicros);
+  }
+  gyroBias.x = sumX / samples;
+  gyroBias.y = sumY / samples;
+  gyroBias.z = sumZ / samples;
+}
+
+void readAccel(float& ax, float& ay, float& az) {
+  int16_t ax_raw, ay_raw, az_raw;
+
+  Wire.beginTransmission(ICM_ADDR);
+  Wire.write(0x35); // A[X,Y,Z]_[H,L] Acceleration Output. Register Address: 0x35 – 0x3A
+  Wire.endTransmission(false);
+  Wire.requestFrom(ICM_ADDR, 6, true);
+
+  int16_t lo, hi;
+
+  lo = Wire.read(); hi = Wire.read(); ax_raw = (hi << 8) | lo;
+  lo = Wire.read(); hi = Wire.read(); ay_raw = (hi << 8) | lo;
+  lo = Wire.read(); hi = Wire.read(); az_raw = (hi << 8) | lo;
+
+  // +-4g
+  ax = ax_raw / 8192.0;  
+  ay = ay_raw / 8192.0;
+  az = az_raw / 8192.0;
+}
+
+
+void readGyro(float& gx, float& gy, float& gz) {
+  int16_t gx_raw, gy_raw, gz_raw;
+
+  Wire.beginTransmission(ICM_ADDR);
+  Wire.write(0x3B); // G[X,Y.Z]_[H,L] Angular Rate Output. Register Address: 0x3B – 0x40
+  Wire.endTransmission(false); // Stops sending, but keep register open for reading
+  Wire.requestFrom(ICM_ADDR, 6, true); // Reads a byte from each gyro register, starting at the first one. 2 Registers per axis
+
+  int16_t lo, hi;
+
+  lo = Wire.read(); hi = Wire.read(); gx_raw = (hi << 8) | lo;
+  lo = Wire.read(); hi = Wire.read(); gy_raw = (hi << 8) | lo;
+  lo = Wire.read(); hi = Wire.read(); gz_raw = (hi << 8) | lo;
+
+  // +-512dps
+  gx = gx_raw / 64.0; // Converts the raw value to the degrees per second
+  gy = gy_raw / 64.0;
+  gz = gz_raw / 64.0;
+}
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Wire.begin();
+  Wire.setClock(400000);
   delay(500);
 
 // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -80,9 +161,9 @@ void setup() {
   }
 
   display.clearDisplay();
-  display.drawPixel(10, 10, SSD1306_WHITE);
-  display.display();
-  delay(1000); // Pause for 2 seconds
+  //display.drawPixel(10, 10, SSD1306_WHITE);
+  //display.display();
+  //delay(1000); // Pause for 2 seconds
 
   //display.begin();
   //display.clearDisplay();
@@ -95,98 +176,64 @@ void setup() {
 
   initICM();
 
-  filter.begin(100); //100Hz
+  calibrateGyro();
+
+  filter.begin(112.1); //112.1Hz
   Serial.print("Setup complete");
 }
 
 void loop() {
-  if (micros() - lastMicros >= intervalMicros) {
-    lastMicros += intervalMicros;
+  unsigned long now = micros();
+  if (micros() - lastMicros > intervalMicros){
+    Serial.println(micros() - lastMicros);
+    unsigned long now = micros();
+    float dt = (now - lastMicros) * 1e-6f;
+    lastMicros = now;
 
     float ax, ay, az, gx, gy, gz;
     readAccel(ax, ay, az);
     readGyro(gx, gy, gz);
 
+    //Serial.print("Accel (g): ");
+    //Serial.print(ax); Serial.print(", ");
+    //Serial.print(ay); Serial.print(", ");
+    //Serial.println(az);
+
+    //Serial.print("Gyro (dps): ");
+    //Serial.print(gx); Serial.print(", ");
+    //Serial.print(gy); Serial.print(", ");
+    //Serial.println(gz);
+
     filter.updateIMU(
-      radians(gx), radians(gy), radians(gz),
+      radians(gx - gyroBias.x),
+      radians(gy - gyroBias.y),
+      radians(gz - gyroBias.z),
       ax, ay, az
     );
 
-    float roll  = filter.getRoll();   // degrees
-    float pitch = filter.getPitch();  // degrees
-    float yaw   = filter.getYaw();    // degrees  (will drift without a magnetometer)
+    //Serial.print("Roll: ");  Serial.print(roll);
+    //Serial.print(" Pitch: "); Serial.print(pitch);
+    //Serial.print(" Yaw: ");   Serial.println(yaw);
 
-    Quaternion q = eulerDegToQuat(roll, pitch, yaw);
+    float roll  = filter.getRoll();
+    float pitch = filter.getPitch();
+    float yaw   = filter.getYaw();
+    q = eulerDegToQuat(roll, pitch, yaw);
+
+    static int frameSkip = 0;
+
+    if (++frameSkip >= 10) { // ~11 Hz display
+      frameSkip = 0;
+      //unsigned long t0 = micros();
+      display.clearDisplay();
+      drawCube(q);
+      display.display();
+      //Serial.println(micros() - t0);
+    }
   }
- 
-  float roll, pitch, yaw;
-  quaternionToEuler(q, roll, pitch, yaw);
-
-  Serial.print("Roll: ");  Serial.print(roll);
-  Serial.print(" Pitch: "); Serial.print(pitch);
-  Serial.print(" Yaw: ");   Serial.println(yaw);
-
-  
-  //Quaternion orientation = {qw , qx, qy, qz};
-
-  display.clearDisplay();
-  drawCube(q);
-  //drawCube(orientation);
-  display.display();
 }
 
-void initICM() {
-  Wire.beginTransmission(ICM_ADDR);
-  Wire.write(0x4E); //power management address
-  Wire.write(0x0F); //low noise accel+gyro, idle off, temp sensor on
-  delayMicroseconds(200); //delay before writing to any more registers per datasheet
-
-  Wire.write(0x4F); //gyro config address
-  Wire.write(0x26); //set Gyro settings, 000(+-2000dps) 001(+-1000dps) 010(+-500dps) 011(+-250dps) etc. then 0110 for default sets for 500dps
-  
-  Wire.write(0x50); //accel config address
-  Wire.write(0x06); //set accell settings, 000(+-16g) 001(+-8g) 010(+-4g) then 0110 for default sets for 16g
-
-  Wire.endTransmission(); //ends transmission
-}
-
-void readAccel(float& ax, float& ay, float& az) {
-  int16_t ax_raw, ay_raw, az_raw;
-
-  Wire.beginTransmission(ICM_ADDR);
-  Wire.write(0x3B);  // ACCEL_XOUT_H
-  Wire.endTransmission(false);
-  Wire.requestFrom(ICM_ADDR, 6, true);
-
-  ax_raw = (Wire.read() << 8) | Wire.read();
-  ay_raw = (Wire.read() << 8) | Wire.read();
-  az_raw = (Wire.read() << 8) | Wire.read();
-
-  ax = ax_raw * (16.0 / 32768.0);  
-  ay = ay_raw * (16.0 / 32768.0);
-  az = az_raw * (16.0 / 32768.0);
-}
-
-
-void readGyro(float& gx, float& gy, float& gz) {
-  int16_t gx_raw, gy_raw, gz_raw;
-
-  Wire.beginTransmission(ICM_ADDR);
-  Wire.write(25); //registor for first gyro data
-  Wire.endTransmission(false); //stops sending, but keep register open for reading
-  Wire.requestFrom(ICM_ADDR, 6, true); //reads a byte from each gyro register, starting at the first one. 2 Registers per axis
-
-  gx_raw = (Wire.read() << 8) | Wire.read(); //shifts the High byte 8 bits to the left, adding 8 zeros to the end. The OR operation combines this with the Low byte, making a 16 bit number representing the whole result.
-  gy_raw = (Wire.read() << 8) | Wire.read();
-  gz_raw = (Wire.read() << 8) | Wire.read();
-
-  //default range, +-500dps
-  gx = gx_raw * (500.0 / 32768.0); //correlates the raw value to the degrees per second
-  gy = gy_raw * (500.0 / 32768.0);
-  gz = gz_raw * (500.0 / 32768.0);
-}
-
-//combines two rotations represented by quaternions
+// Combines two rotations represented by quaternions
 Quaternion qMult(const Quaternion & a, const Quaternion & b) {
   return {
     a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z, //w (scalar component)
@@ -232,17 +279,4 @@ void drawCube(const Quaternion& q){
     Vector2 p2 = projected[edges[i][1]];
     display.drawLine(p1.x, p1.y, p2.x, p2.y, SSD1306_WHITE);
   }
-}
-
-void quaternionToEuler(const Quaternion& q, float& roll, float& pitch, float& yaw) {
-  //roll
-  roll = atan2(2.0 * (q.w*q.x + q.y*q.z),
-               1.0 - 2.0 * (q.x*q.x + q.y*q.y));
-
-  //pitch
-  pitch = asin(2.0 * (q.w*q.y - q.z*q.x));
-
-  //yaw
-  yaw = atan2(2.0 * (q.w*q.z + q.x*q.y),
-              1.0 - 2.0 * (q.y*q.y + q.z*q.z));
 }
